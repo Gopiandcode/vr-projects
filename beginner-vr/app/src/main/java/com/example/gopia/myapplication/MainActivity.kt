@@ -32,7 +32,29 @@ class MainActivity : GvrActivity(), GvrView.StereoRenderer {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // standard android load layout
         setContentView(R.layout.activity_main)
+
+        // we then retrieve the vr view
+        var gvrView : GvrView = findViewById(R.id.gvr_view)
+        // and configure it's params
+        gvrView.setEGLConfigChooser(8, 8, 8, 8, 16, 8)
+
+
+        // define a renderer for the view to display
+        gvrView.setRenderer(this)
+        // TODO: Check out what this line does:
+        gvrView.setTransitionViewEnabled(true)
+
+
+        if(gvrView.setAsyncReprojectionEnabled(true)) {
+            // Asyn reprojection - decouples framerate from display framerate,
+            // prevents throttling from performance mode effecting logic
+            AndroidCompat.setSustainedPerformanceMode(this, true);
+        }
+
+        // then just set the gvrView for the class
+        setGvrView(gvrView);
     }
 
 
