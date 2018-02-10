@@ -80,32 +80,43 @@ class MainActivity : GvrActivity(), GvrView.StereoRenderer {
 
 
     override fun onRendererShutdown() {
-        TODO("not implemented")
+        Log.i(TAG, "onRendererShutdown")
     }
 
     override fun onFinishFrame(p0: Viewport?) {
         TODO("not implemented")
+        // nothing needed
     }
 
     override fun onDrawEye(p0: Eye?) {
         TODO("not implemented")
+
+        // set flags
+
+        // move view transform to camera
+
+        // set position of light
+
+        // draw cube
+        // draw floor
+
+
     }
 
     override fun onSurfaceCreated(p0: EGLConfig?) {
-        TODO("not implemented")
+        // TODO: Add surface created is where all the buffers are added
     }
 
     override fun onSurfaceChanged(p0: Int, p1: Int) {
-        TODO("not implemented")
+        Log.i(TAG, "onSurfaceChanged")
     }
 
     override fun onNewFrame(p0: HeadTransform?) {
         TODO("not implemented")
+        // used to modify the camera matrix
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    private fun initializeGVRView() {
         // standard android load layout
         setContentView(R.layout.activity_main)
 
@@ -133,6 +144,25 @@ class MainActivity : GvrActivity(), GvrView.StereoRenderer {
         setGvrView(gvrView)
     }
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        initializeGVRView()
+        modelCube = FloatArray(16)
+        camera = FloatArray(16)
+        view = FloatArray(16)
+        modelViewProjection = FloatArray(16)
+        modelView = FloatArray(16)
+        modelFloor = FloatArray(16)
+        tempPosition = FloatArray(4)
+
+        modelPosition = floatArrayOf(0.0f, 0.0f, -MAX_MODEL_DISTANCE / 2.0f)
+        headRotation = FloatArray(4)
+        headView = FloatArray(16)
+
+    }
+
     /**
      * Reads a text file to string
      * @param resId the resource ID of the text file
@@ -157,6 +187,12 @@ class MainActivity : GvrActivity(), GvrView.StereoRenderer {
         }
     }
 
+
+    override fun onCardboardTrigger() {
+        // when cardboard button called
+        super.onCardboardTrigger()
+    }
+
     private fun loadGLShader(type: Int, resId: Int): Int {
         val code = readRawTextFile(resId)
         // create and compile the shader
@@ -167,13 +203,13 @@ class MainActivity : GvrActivity(), GvrView.StereoRenderer {
         // check shader compiled successfully
         val compileStatus = IntArray(1)
         GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0)
-        if(compileStatus[0] == 0) {
+        if (compileStatus[0] == 0) {
             Log.d(TAG, "Error compiling shader: " + GLES20.glGetShaderInfoLog(shader))
             GLES20.glDeleteShader(shader)
             shader = 0
         }
 
-        if(shader == 0) {
+        if (shader == 0) {
             throw RuntimeException("Error creating shader")
         }
 
