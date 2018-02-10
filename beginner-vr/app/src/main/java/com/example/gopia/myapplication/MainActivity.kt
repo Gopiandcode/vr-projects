@@ -1,8 +1,14 @@
 package com.example.gopia.myapplication
 
+import android.opengl.GLES20
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import com.google.vr.sdk.base.*
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.nio.FloatBuffer
 import javax.microedition.khronos.egl.EGLConfig
 
@@ -59,15 +65,15 @@ class MainActivity : GvrActivity(), GvrView.StereoRenderer {
     private var floorModelProjectionParam = 0
     private var floorLightPosParam = 0
 
-    private lateinit var camera : FloatArray
-    private lateinit var view : FloatArray
-    private lateinit var headView : FloatArray
-    private lateinit var modelViewProjection : FloatArray
-    private lateinit var modelView : FloatArray
-    private lateinit var modelFloor : FloatArray
+    private lateinit var camera: FloatArray
+    private lateinit var view: FloatArray
+    private lateinit var headView: FloatArray
+    private lateinit var modelViewProjection: FloatArray
+    private lateinit var modelView: FloatArray
+    private lateinit var modelFloor: FloatArray
 
-    private lateinit var tempPosition : FloatArray
-    private lateinit var headRotation : FloatArray
+    private lateinit var tempPosition: FloatArray
+    private lateinit var headRotation: FloatArray
 
     private var objectDistance = MAX_MODEL_DISTANCE / 2.0f
     private var floorDepth = 20f;
@@ -127,8 +133,52 @@ class MainActivity : GvrActivity(), GvrView.StereoRenderer {
         setGvrView(gvrView)
     }
 
+    /**
+     * Reads a text file to string
+     * @param resId the resource ID of the text file
+     * @return The text file as a string
+     */
+    private fun readRawTextFile(resId: Int): String {
+        // basic file reading function - pretty sure there now exists sdk func to do this
+        val inputStream = super.getResources().openRawResource(resId)
+        try {
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            val sb = StringBuilder()
+            var line: String? = reader.readLine()
+            while (line != null) {
+                sb.append(line).append("\n")
+                line = reader.readLine()
+            }
+            reader.close();
+            return sb.toString()
+        } catch (e: IOException) {
+            e.printStackTrace()
+            throw RuntimeException()
+        }
+    }
 
     private fun loadGLShader(type: Int, resId: Int): Int {
-        TODO("Not implemented")
+        val code = readRawTextFile(resId)
+        // create and compile the shader
+        var shader = GLES20.glCreateShader(type)
+        GLES20.glShaderSource(shader, code)
+        GLES20.glCompileShader(shader)
+
+        // check shader compiled successfully
+        val compileStatus = IntArray(1)
+        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compileStatus, 0)
+        if(compileStatus[0] == 0) {
+            Log.d(TAG, "Error compiling shader: " + GLES20.glGetShaderInfoLog(shader))
+            GLES20.glDeleteShader(shader)
+            shader = 0
+        }
+
+        if(shader == 0) {
+            throw RuntimeException("Error creating shader")
+        }
+
+        return shader
     }
+
+
 }
