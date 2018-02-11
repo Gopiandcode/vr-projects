@@ -1,6 +1,7 @@
 package com.example.gopia.myapplication
 
 import android.opengl.GLES20
+import android.opengl.Matrix
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -89,19 +90,44 @@ class MainActivity : GvrActivity(), GvrView.StereoRenderer {
     }
 
     override fun onDrawEye(p0: Eye?) {
-        TODO("not implemented")
 
         // set flags
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST) // test depth
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
-        // move view transform to camera
+        // move view transform to camera - TODO: Find out what p1 .. params do
+        Matrix.multiplyMM(view, 0, p0!!.eyeView, 0, camera, 0)
 
         // set position of light
+        Matrix.multiplyMV(lightPosInEyeSpace, 0, view, 0, LIGHT_POS_IN_WORLD_SPACE, 0);
 
-        // draw cube
+        // todo check maths on this function
+        val perspective = p0.getPerspective(Z_NEAR, Z_FAR)
+        // draw cube todo: What is the difference between multiplyMM and MV?
+        // calculate the view space position of the cube
+        Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
+        // calculate the projected position of the cube
+        Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0)
+        drawCube()
+
+
         // draw floor
-
+        Matrix.multiplyMM(modelView, 0, view, 0, modelFloor, 0);
+        // calculate the projected position of the cube
+        Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0)
+        // now draw the model using the modelviewprojection
+        drawFloor()
 
     }
+
+    private fun drawFloor() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private fun drawCube() {
+            TODO("Not Implemented")
+    }
+
 
     override fun onSurfaceCreated(p0: EGLConfig?) {
         // TODO: Add surface created is where all the buffers are added
